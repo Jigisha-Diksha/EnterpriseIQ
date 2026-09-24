@@ -1,0 +1,36 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: enterpriseiq-backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      PYTHONUNBUFFERED: '1'
+      CHROMA_PERSIST_DIRECTORY: /data/chroma
+      UPLOAD_DIRECTORY: /data/uploads
+      CHUNK_SIZE: '800'
+      CHUNK_OVERLAP: '150'
+      TOP_K: '5'
+      LLM_PROVIDER: 'ollama'
+      LLM_MODEL: 'llama3.1'
+      OLLAMA_BASE_URL: 'http://host.docker.internal:11434'
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./backend:/app
+      - ./backend/data:/data
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: enterpriseiq-frontend
+    command: npm run dev -- --host 0.0.0.0 --port 5173
+    ports:
+      - '5173:5173'
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
